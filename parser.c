@@ -89,8 +89,7 @@ factor =
     | "(" expression ")"
 */
 
-struct parser
-{
+struct parser {
 	struct token	 token;
 	char 		*text;
 	size_t 		 index;
@@ -120,6 +119,16 @@ parser_term1(struct parser *this);
 
 static struct astnode *
 parser_factor(struct parser *this);
+
+static struct astnode *
+parser_new_node(enum astnode_type type, struct astnode *left,
+                struct astnode *right);
+
+static struct astnode *
+parser_new_unarynode(struct astnode *left);
+
+static struct astnode *
+parser_new_numbernode(double val);
 
 struct parser *
 parser_new(void)
@@ -283,7 +292,7 @@ parser_expression(struct parser *this)
 	tn = parser_term(this);
 	e1n = parser_expression1(this);
 
-	return astnode_new_node(astnode_type_plus, tn, e1n);
+	return parser_new_node(astnode_type_plus, tn, e1n);
 }
 
 struct astnode *
@@ -298,15 +307,15 @@ parser_expression1(struct parser *this)
 		parser_getnexttoken(this);
 		tn = parser_term(this);
 		e1n = parser_expression1(this);
-		return astnode_new_node(astnode_type_plus, e1n, tn);
+		return parser_new_node(astnode_type_plus, e1n, tn);
 	} else if (this->token.type == token_type_minus) {
 		parser_getnexttoken(this);
 		tn = parser_term(this);
 		e1n = parser_expression1(this);
-		return astnode_new_node(astnode_type_minus, e1n, tn);
+		return parser_new_node(astnode_type_minus, e1n, tn);
 	}
 
-	return astnode_new_numbernode(0);
+	return parser_new_numbernode(0);
 }
 
 struct astnode *
@@ -320,7 +329,7 @@ parser_term(struct parser *this)
 	fn = parser_factor(this);
 	t1n = parser_term1(this);
 
-	return astnode_new_node(astnode_type_mul, fn, t1n);
+	return parser_new_node(astnode_type_mul, fn, t1n);
 }
 
 struct astnode *
@@ -336,16 +345,16 @@ parser_term1(struct parser *this)
 		fn = parser_factor(this);
 		t1n = parser_term1(this);
 
-		return astnode_new_node(astnode_type_mul, t1n, fn);
+		return parser_new_node(astnode_type_mul, t1n, fn);
 	} else if (this->token.type == token_type_div) {
 		parser_getnexttoken(this);
 		fn = parser_factor(this);
 		t1n = parser_term1(this);
 
-		return astnode_new_node(astnode_type_div, t1n, fn);
+		return parser_new_node(astnode_type_div, t1n, fn);
 	}
 
-	return astnode_new_numbernode(1);
+	return parser_new_numbernode(1);
 }
 
 struct astnode *
@@ -367,11 +376,48 @@ parser_factor(struct parser *this)
 		parser_getnexttoken(this);
 		n = parser_factor(this);
 
-		return astnode_new_unarynode(n);
+		return parser_new_unarynode(n);
 	} else if (this->token.type == token_type_number) {
 		v = this->token.value;
 		parser_getnexttoken(this);
 
-		return astnode_new_numbernode(v);
+		return parser_new_numbernode(v);
 	}
+}
+
+struct astnode *
+parser_new_node(enum astnode_type type, struct astnode *left,
+                struct astnode *right)
+{
+	struct astnode *n;
+
+	n = astnode_new_node(type, left, right);
+
+	DPRINTF(("%s(): node=%p type=%d left=%p right=%p\n", __func__, n, type, left, right));
+
+	return n;
+}
+
+struct astnode *
+parser_new_unarynode(struct astnode *left)
+{
+	struct astnode *n;
+
+	n = astnode_new_unarynode(left);
+
+	DPRINTF(("%s(): node=%p left=%p\n", __func__, n, left));
+
+	return n;
+}
+
+struct astnode *
+parser_new_numbernode(double val)
+{
+	struct astnode *n;
+
+	n = astnode_new_numbernode(val);
+
+	DPRINTF(("%s(): node=%p val=%lf\n", __func__, n, val));
+
+	return n;
 }
