@@ -141,3 +141,16 @@ astnode_right(struct astnode *this)
 
 	return this->right;
 }
+
+void
+astnode_delete_tree(struct astnode *this)
+{
+
+	if (this == NULL)
+		return;
+
+	astnode_delete_tree(this->left);
+	astnode_delete_tree(this->right);
+
+	free(this);
+}

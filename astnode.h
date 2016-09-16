@@ -69,4 +69,7 @@ astnode_left(struct astnode *this);
 struct astnode *
 astnode_right(struct astnode *right);
 
+void
+astnode_delete_tree(struct astnode *this);
+
 #endif /* __EVALVAL_ASTNODE_H__ */

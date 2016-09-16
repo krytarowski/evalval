@@ -56,12 +56,17 @@ calc(char *s)
 
 	p = parser_new();
 	n = parser_parse(p, s);
+	if (!n)
+		goto err1;
 	e = evaluator_singleton();
 
 	v = evaluator_eval(e, n);
 
 	printf("%lf\n", v);
 
+	astnode_delete_tree(n);
+
+err1:
 	parser_delete(p);
 }
 
